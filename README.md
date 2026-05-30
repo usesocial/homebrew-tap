@@ -3,7 +3,10 @@
 Install the social CLI:
 
 ```sh
-brew install usesocial/tap/social
+brew install usesocial/tap/cli && npx --yes skills add usesocial/skill -y -g all
 ```
 
-After the tap is installed locally, `brew install social` can upgrade or reinstall the formula.
+This installs the `social` binary and the public agent skill.
+
+After the tap is installed locally, `brew upgrade usesocial/tap/cli` can upgrade
+the formula.
