@@ -2,7 +2,7 @@ class Social < Formula
   desc "Connect agents to LinkedIn and X from the terminal"
   homepage "https://socialcli.dev"
   url "https://registry.npmjs.org/@usesocial/cli/-/cli-0.1.0.tgz"
-  sha256 "343c5d61daed95eaa479975717fd3756df6f2d82e5ba519ab08b3a44e4d74407"
+  sha256 "0544b9042425d4e0b55d4080768df34e2ecfa5845ce626f0676ec17240619367"
   license :cannot_represent
 
   depends_on "bun"
