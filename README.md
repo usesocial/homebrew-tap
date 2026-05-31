@@ -1,6 +1,6 @@
 # usesocial Homebrew tap
 
-Install the social CLI:
+Install the social CLI for agent-run distribution:
 
 ```sh
 brew install usesocial/tap/cli && npx --yes skills add usesocial/skill -y -g all
