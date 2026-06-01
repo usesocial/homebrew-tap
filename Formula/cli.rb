@@ -17,7 +17,7 @@ class Cli < Formula
   def caveats
     <<~EOS
       Install the social agent skill with:
-        npx --yes skills add usesocial/skill -y -g all
+        npx skills add usesocial/skill
     EOS
   end
 

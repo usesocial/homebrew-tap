@@ -3,10 +3,14 @@
 Install the social CLI for agent-run distribution:
 
 ```sh
-brew tap usesocial/tap/cli && npx --yes skills add usesocial/skill -y -g all
+brew install usesocial/tap/cli
 ```
 
-This installs the `social` binary and the public agent skill.
+This installs the `social` binary. To install the public agent skill too, run:
+
+```sh
+npx skills add usesocial/skill
+```
 
 After the tap is installed locally, `brew upgrade usesocial/tap/cli` can upgrade
 the formula.
