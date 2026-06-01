@@ -1,16 +1,13 @@
 # usesocial Homebrew tap
 
-Install the social CLI for agent-run distribution:
+This repository tracks Homebrew formula release infrastructure for the social
+CLI.
+
+Install `social` with the hosted setup command:
 
 ```sh
-brew install usesocial/tap/cli
+curl -fsSL https://usesocial.dev/install.sh | bash
 ```
 
-This installs the `social` binary. To install the public agent skill too, run:
-
-```sh
-npx skills add usesocial/skill
-```
-
-After the tap is installed locally, `brew upgrade usesocial/tap/cli` can upgrade
-the formula.
+The setup command installs the `social` binary and public agent skill, then
+starts `social auth login`.
