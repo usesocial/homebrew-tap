@@ -1,8 +1,8 @@
 class Cli < Formula
   desc "Agent-run distribution across X and LinkedIn"
   homepage "https://usesocial.dev"
-  url "https://registry.npmjs.org/@usesocial/cli/-/cli-0.2.3.tgz"
-  sha256 "e686ab7d7a4bcdabcd96f7f9a5249ea35411929b225fbce2d01f9d71903def31"
+  url "https://registry.npmjs.org/@usesocial/cli/-/cli-0.2.4.tgz"
+  sha256 "4ef94b5c86524a4ceebec2a8e0f557342eea98b3be0ca379b8f2c7057a08a174"
   license "MIT"
 
   depends_on "node"
