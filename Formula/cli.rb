@@ -1,8 +1,8 @@
 class Cli < Formula
   desc "Agent-run distribution across X and LinkedIn"
   homepage "https://usesocial.dev"
-  url "https://registry.npmjs.org/@usesocial/cli/-/cli-0.2.2.tgz"
-  sha256 "a41597ca7ebeab164ba371b4c7caa76ac2a7e2933803bfceb834c7122d82cc99"
+  url "https://registry.npmjs.org/@usesocial/cli/-/cli-0.2.3.tgz"
+  sha256 "e686ab7d7a4bcdabcd96f7f9a5249ea35411929b225fbce2d01f9d71903def31"
   license "MIT"
 
   depends_on "node"
@@ -10,7 +10,7 @@ class Cli < Formula
   def install
     (bin/"social").write <<~EOS
       #!/usr/bin/env bash
-      exec "#{Formula["node"].opt_bin}/npx" --yes --package "@usesocial/cli@0.2.2" social "$@"
+      exec "#{Formula["node"].opt_bin}/npx" --yes --package "@usesocial/cli@0.2.3" social "$@"
     EOS
   end
 
