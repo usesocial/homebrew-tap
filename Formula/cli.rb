@@ -8,9 +8,11 @@ class Cli < Formula
   depends_on "node"
 
   def install
+    libexec.install Dir["*"]
+
     (bin/"social").write <<~EOS
       #!/usr/bin/env bash
-      exec "#{Formula["node"].opt_bin}/npx" --yes --package "@usesocial/cli@0.2.3" social "$@"
+      exec "#{Formula["node"].opt_bin}/node" "#{libexec}/bin/social.mjs" "$@"
     EOS
   end
 
