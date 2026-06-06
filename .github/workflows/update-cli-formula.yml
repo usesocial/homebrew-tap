@@ -1,0 +1,95 @@
+name: Update CLI Formula
+
+on:
+  repository_dispatch:
+    types:
+      - cli-published
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "@usesocial/cli version to publish through Homebrew"
+        required: true
+        type: string
+
+concurrency:
+  group: update-cli-formula
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    name: Update Formula/cli.rb
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve version
+        env:
+          DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          version="${DISPATCH_VERSION:-$INPUT_VERSION}"
+
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Invalid @usesocial/cli version: $version"
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_ENV"
+          echo "tarball_url=https://registry.npmjs.org/@usesocial/cli/-/cli-${version}.tgz" >> "$GITHUB_ENV"
+
+      - name: Update formula
+        run: |
+          curl -fsSL "$tarball_url" -o cli.tgz
+          sha256="$(shasum -a 256 cli.tgz | awk '{print $1}')"
+
+          FORMULA_URL="$tarball_url" FORMULA_SHA256="$sha256" FORMULA_VERSION="$version" ruby <<'RUBY'
+          formula_path = "Formula/cli.rb"
+          content = File.read(formula_path)
+          content = content.sub(
+            %r{url "https://registry\.npmjs\.org/@usesocial/cli/-/cli-[^"]+\.tgz"},
+            %(url "#{ENV.fetch("FORMULA_URL")}")
+          )
+          content = content.sub(
+            /sha256 "[0-9a-f]{64}"/,
+            %(sha256 "#{ENV.fetch("FORMULA_SHA256")}")
+          )
+          content = content.sub(
+            /@usesocial\/cli@[0-9A-Za-z.-]+/,
+            "@usesocial/cli@#{ENV.fetch("FORMULA_VERSION")}"
+          )
+          File.write(formula_path, content)
+          RUBY
+
+      - id: formula-diff
+        name: Check formula diff
+        run: |
+          if git diff --quiet -- Formula/cli.rb; then
+            echo "Formula/cli.rb is already current for @usesocial/cli ${version}."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate formula
+        if: steps.formula-diff.outputs.changed == 'true'
+        run: |
+          brew style Formula/cli.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/cli.rb
+          git commit -m "chore(cli): bump Homebrew formula to ${version}"
+
+          brew untap usesocial/tap || true
+          brew tap usesocial/tap "$GITHUB_WORKSPACE"
+          brew uninstall --force cli || true
+          brew install usesocial/tap/cli
+          "$(brew --prefix cli)/bin/social" --help
+          brew test usesocial/tap/cli
+
+      - name: Push formula update
+        if: steps.formula-diff.outputs.changed == 'true'
+        run: |
+          git push
