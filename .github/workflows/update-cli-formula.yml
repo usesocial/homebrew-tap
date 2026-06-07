@@ -19,13 +19,11 @@ permissions:
   contents: write
 
 jobs:
-  update:
-    name: Update Formula/cli.rb
-    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+  update-formula:
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
-
-      - name: Resolve version
+      - id: resolve
         env:
           DISPATCH_VERSION: ${{ github.event.client_payload.version }}
           INPUT_VERSION: ${{ github.event.inputs.version }}
@@ -40,7 +38,7 @@ jobs:
           echo "version=$version" >> "$GITHUB_ENV"
           echo "tarball_url=https://registry.npmjs.org/@usesocial/cli/-/cli-${version}.tgz" >> "$GITHUB_ENV"
 
-      - name: Update formula
+      - id: update
         run: |
           curl -fsSL "$tarball_url" -o cli.tgz
           sha256="$(shasum -a 256 cli.tgz | awk '{print $1}')"
@@ -63,8 +61,7 @@ jobs:
           File.write(formula_path, content)
           RUBY
 
-      - id: formula-diff
-        name: Check formula diff
+      - id: diff
         run: |
           if git diff --quiet -- Formula/cli.rb; then
             echo "Formula/cli.rb is already current for @usesocial/cli ${version}."
@@ -73,8 +70,8 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Validate formula
-        if: steps.formula-diff.outputs.changed == 'true'
+      - name: validate
+        if: steps.diff.outputs.changed == 'true'
         run: |
           brew style Formula/cli.rb
           git config user.name "github-actions[bot]"
@@ -89,7 +86,7 @@ jobs:
           "$(brew --prefix cli)/bin/social" --help
           brew test usesocial/tap/cli
 
-      - name: Push formula update
-        if: steps.formula-diff.outputs.changed == 'true'
+      - name: push
+        if: steps.diff.outputs.changed == 'true'
         run: |
           git push
