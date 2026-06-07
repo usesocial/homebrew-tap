@@ -23,7 +23,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
+        name: checkout
       - id: resolve
+        name: resolve
         env:
           DISPATCH_VERSION: ${{ github.event.client_payload.version }}
           INPUT_VERSION: ${{ github.event.inputs.version }}
@@ -39,6 +41,7 @@ jobs:
           echo "tarball_url=https://registry.npmjs.org/@usesocial/cli/-/cli-${version}.tgz" >> "$GITHUB_ENV"
 
       - id: update
+        name: update[formula]
         run: |
           curl -fsSL "$tarball_url" -o cli.tgz
           sha256="$(shasum -a 256 cli.tgz | awk '{print $1}')"
@@ -62,6 +65,7 @@ jobs:
           RUBY
 
       - id: diff
+        name: diff[formula]
         run: |
           if git diff --quiet -- Formula/cli.rb; then
             echo "Formula/cli.rb is already current for @usesocial/cli ${version}."
@@ -70,7 +74,7 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: validate
+      - name: validate[formula]
         if: steps.diff.outputs.changed == 'true'
         run: |
           brew style Formula/cli.rb
