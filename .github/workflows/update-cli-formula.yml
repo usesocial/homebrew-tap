@@ -1,4 +1,4 @@
-name: Update CLI Formula
+name: update-cli-formula
 
 on:
   repository_dispatch:
