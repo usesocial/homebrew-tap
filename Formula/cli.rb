@@ -1,5 +1,5 @@
 class Cli < Formula
-  desc "Agent-run distribution across X and LinkedIn"
+  desc "LinkedIn & X CLI"
   homepage "https://usesocial.dev"
   url "https://registry.npmjs.org/@usesocial/cli/-/cli-0.2.4.tgz"
   sha256 "4ef94b5c86524a4ceebec2a8e0f557342eea98b3be0ca379b8f2c7057a08a174"
@@ -24,6 +24,6 @@ class Cli < Formula
   end
 
   test do
-    assert_match "social - Agent-run distribution", shell_output("#{bin}/social --help")
+    assert_match "social - Let your agent manage LinkedIn & X for you", shell_output("#{bin}/social --help")
   end
 end
