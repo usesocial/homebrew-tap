@@ -24,6 +24,6 @@ class Cli < Formula
   end
 
   test do
-    assert_match "social - Let your agent manage LinkedIn & X for you", shell_output("#{bin}/social --help")
+    assert_match "social - Let your agent run LinkedIn & X for you", shell_output("#{bin}/social --help")
   end
 end
