@@ -32,38 +32,62 @@ jobs:
         env:
           DISPATCH_VERSION: ${{ github.event.client_payload.version }}
           INPUT_VERSION: ${{ github.event.inputs.version }}
+          PACKAGE: ${{ github.event.client_payload.package }}
+          MONOREPO_SHA: ${{ github.event.client_payload.monorepo_sha }}
+          MONOREPO_RUN_URL: ${{ github.event.client_payload.run_url }}
         run: |
-          version="${DISPATCH_VERSION:-$INPUT_VERSION}"
+          if [[ -n "${PACKAGE:-}" && "$PACKAGE" != "@usesocial/cli" ]]; then
+            echo "::error::Invalid package dispatch: $PACKAGE"
+            exit 1
+          fi
 
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+          version="${DISPATCH_VERSION:-$INPUT_VERSION}"
+          semver='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+
+          if [[ ! "$version" =~ $semver ]]; then
             echo "::error::Invalid @usesocial/cli version: $version"
             exit 1
           fi
 
           echo "version=$version" >> "$GITHUB_ENV"
           echo "tarball_url=https://registry.npmjs.org/@usesocial/cli/-/cli-${version}.tgz" >> "$GITHUB_ENV"
+          echo "MONOREPO_SHA=$MONOREPO_SHA" >> "$GITHUB_ENV"
+          echo "MONOREPO_RUN_URL=$MONOREPO_RUN_URL" >> "$GITHUB_ENV"
+
+          if [[ -n "${MONOREPO_SHA:-}" || -n "${MONOREPO_RUN_URL:-}" ]]; then
+            {
+              echo "### CLI release provenance"
+              if [[ -n "${MONOREPO_SHA:-}" ]]; then
+                echo "- Monorepo SHA: ${MONOREPO_SHA}"
+              fi
+              if [[ -n "${MONOREPO_RUN_URL:-}" ]]; then
+                echo "- Release run: ${MONOREPO_RUN_URL}"
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - id: update
         name: update[formula]
         run: |
-          curl -fsSL "$tarball_url" -o cli.tgz
-          sha256="$(shasum -a 256 cli.tgz | awk '{print $1}')"
+          tarball_path="$(mktemp)"
+          trap 'rm -f "$tarball_path"' EXIT
 
-          FORMULA_URL="$tarball_url" FORMULA_SHA256="$sha256" FORMULA_VERSION="$version" ruby <<'RUBY'
+          curl -fsSL "$tarball_url" -o "$tarball_path"
+          sha256="$(shasum -a 256 "$tarball_path" | awk '{print $1}')"
+          rm -f "$tarball_path"
+          trap - EXIT
+
+          FORMULA_URL="$tarball_url" FORMULA_SHA256="$sha256" ruby <<'RUBY'
           formula_path = "Formula/cli.rb"
           content = File.read(formula_path)
-          content = content.sub(
+          content.sub!(
             %r{url "https://registry\.npmjs\.org/@usesocial/cli/-/cli-[^"]+\.tgz"},
             %(url "#{ENV.fetch("FORMULA_URL")}")
-          )
-          content = content.sub(
+          ) || abort("Formula URL pattern not found")
+          content.sub!(
             /sha256 "[0-9a-f]{64}"/,
             %(sha256 "#{ENV.fetch("FORMULA_SHA256")}")
-          )
-          content = content.sub(
-            /@usesocial\/cli@[0-9A-Za-z.-]+/,
-            "@usesocial/cli@#{ENV.fetch("FORMULA_VERSION")}"
-          )
+          ) || abort("Formula sha256 pattern not found")
           File.write(formula_path, content)
           RUBY
 
@@ -77,14 +101,15 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: validate[formula]
+      - name: validate[metadata]
+        run: |
+          ruby -c Formula/cli.rb
+          ruby scripts/check-formula.rb Formula/cli.rb
+
+      - name: validate[homebrew]
         if: steps.diff.outputs.changed == 'true'
         run: |
           brew style Formula/cli.rb
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Formula/cli.rb
-          git commit -m "chore(cli): bump Homebrew formula to ${version}"
 
           brew untap usesocial/tap || true
           brew tap usesocial/tap "$GITHUB_WORKSPACE"
@@ -92,6 +117,24 @@ jobs:
           brew install usesocial/tap/cli
           "$(brew --prefix cli)/bin/social" --help
           brew test usesocial/tap/cli
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/cli.rb
+
+          commit_message="$(mktemp)"
+          {
+            echo "chore(cli): bump Homebrew formula to ${version}"
+            echo
+            if [[ -n "${MONOREPO_SHA:-}" ]]; then
+              echo "Monorepo-SHA: ${MONOREPO_SHA}"
+            fi
+            if [[ -n "${MONOREPO_RUN_URL:-}" ]]; then
+              echo "Monorepo-Run: ${MONOREPO_RUN_URL}"
+            fi
+          } > "$commit_message"
+          git commit -F "$commit_message"
+          rm -f "$commit_message"
 
       - name: push
         if: steps.diff.outputs.changed == 'true'
