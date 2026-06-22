@@ -111,12 +111,10 @@ jobs:
         run: |
           brew style Formula/cli.rb
 
-          brew untap usesocial/tap || true
-          brew tap usesocial/tap "$GITHUB_WORKSPACE"
           brew uninstall --force cli || true
-          brew install usesocial/tap/cli
+          brew install --build-from-source --formula Formula/cli.rb
           "$(brew --prefix cli)/bin/social" --help
-          brew test usesocial/tap/cli
+          brew test cli
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
