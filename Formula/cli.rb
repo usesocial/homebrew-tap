@@ -1,8 +1,8 @@
 class Cli < Formula
-  desc "LinkedIn & X CLI"
+  desc "LinkedIn CLI"
   homepage "https://usesocial.dev"
-  url "https://registry.npmjs.org/@usesocial/cli/-/cli-0.11.8.tgz"
-  sha256 "3ce1b299d7d0fc43641ac30e2aa7478f97a581f91196f45a8175197ae6529165"
+  url "https://registry.npmjs.org/@usesocial/cli/-/cli-0.11.9.tgz"
+  sha256 "faf11ac4de53da57af54f79b8385913e3ee87ffd1e82322139e2a4371de2c821"
   license "MIT"
 
   depends_on "node"
@@ -12,7 +12,7 @@ class Cli < Formula
 
     (bin/"social").write <<~EOS
       #!/usr/bin/env bash
-      exec "#{Formula["node"].opt_bin}/node" "#{libexec}/bin/social.mjs" "$@"
+      exec "#{formula_opt_bin("node")}/node" "#{libexec}/bin/social.mjs" "$@"
     EOS
   end
 
@@ -24,6 +24,6 @@ class Cli < Formula
   end
 
   test do
-    assert_match "social - Let your agent run LinkedIn & X for you", shell_output("#{bin}/social --help")
+    assert_match "social - Let your agent run your LinkedIn", shell_output("#{bin}/social --help")
   end
 end
