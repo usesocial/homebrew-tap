@@ -25,7 +25,7 @@ class Cli < Formula
 
   test do
     assert_match(
-      /social - Let your agent run (LinkedIn & X for you|your LinkedIn)/,
+      /social - Agentic founder-led distribution/,
       shell_output("#{bin}/social --help"),
     )
   end
