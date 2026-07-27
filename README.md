@@ -10,4 +10,4 @@ curl -fsSL https://usesocial.dev/install.sh | bash
 ```
 
 The setup command installs the `social` binary and public agent skill, then
-starts `social account login`.
+starts `social account setup`.
