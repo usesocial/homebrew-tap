@@ -1,8 +1,8 @@
 class Cli < Formula
   desc "LinkedIn & X CLI"
   homepage "https://usesocial.dev"
-  url "https://registry.npmjs.org/@usesocial/cli/-/cli-0.19.1.tgz"
-  sha256 "d770855dc3cb8575852862e0e1ee15afbc5d7e98f946ced393d3988c1ec6cfc7"
+  url "https://registry.npmjs.org/@usesocial/cli/-/cli-0.19.2.tgz"
+  sha256 "f4984b4ff04ffbcfb32c69dae3bfd48c8d228fef8c5831a2d748db2aed2101e0"
   license "MIT"
 
   depends_on "node"
