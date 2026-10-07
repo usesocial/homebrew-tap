@@ -108,16 +108,19 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: validate[metadata]
-        run: |
-          ruby -c Formula/cli.rb
-          ruby scripts/check-formula.rb Formula/cli.rb
+      - parallel:
+          - name: validate[metadata]
+            run: |
+              ruby -c Formula/cli.rb
+              ruby scripts/check-formula.rb Formula/cli.rb
+
+          - name: validate[style]
+            if: steps.diff.outputs.changed == 'true'
+            run: brew style Formula/cli.rb
 
       - name: validate[homebrew]
         if: steps.diff.outputs.changed == 'true'
         run: |
-          brew style Formula/cli.rb
-
           brew untap usesocial/tap || true
           brew tap usesocial/tap "$GITHUB_WORKSPACE"
           cp Formula/cli.rb "$(brew --repo usesocial/tap)/Formula/cli.rb"
